@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  database:
+    image: mongo:latest
+    container_name: skillhub-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../Dockerfile.backend
+    container_name: skillhub-backend
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGODB_URI=mongodb://database:27017/skillhub
+      - PORT=5001
+      - JWT_SECRET=jwt_secret_key_123456
+      - JWT_EXPIRE=24h
+      - JWT_REFRESH_SECRET=refresh_secret_key_789
+      - FRONTEND_URL=http://localhost
+      - NODE_ENV=production
+    depends_on:
+      - database
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+    container_name: skillhub-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
